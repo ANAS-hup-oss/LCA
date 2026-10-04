@@ -1,51 +1,53 @@
 struct LCA {
-    static const int LOG = 8;
-
+    static const int LOG = 20;
+ 
     int n;
-    vector<vector<pair<int,int>>> adj;
+    vector<vector<pair<int,int> > > adj;
     vector<int> dep;
-    int up[105][LOG];
-    int mx[105][LOG];
-    int mn[105][LOG];
-
+    vector<vector<int> > up;
+    vector<vector<int> > mx;
+    vector<vector<int> > mn;
+ 
     LCA(int n) {
         this->n = n;
         adj.resize(n + 1);
         dep.assign(n + 1, 0);
-
-        memset(mn, 0x3f, sizeof(mn));
+ 
+        up.resize(n + 1, vector<int>(LOG));
+        mx.resize(n + 1, vector<int>(LOG));
+        mn.resize(n + 1, vector<int>(LOG, 1e18));
     }
-
+ 
     void addEdge(int u, int v, int w) {
         adj[u].push_back({v, w});
         adj[v].push_back({u, w});
     }
-
+ 
     void dfs(int u, int p, int w) {
         up[u][0] = p;
         mx[u][0] = w;
         mn[u][0] = w;
-
-        for (auto [v, cost] : adj[u]) {
+ 
+        for (auto [v, cost]: adj[u]) {
             if (v == p) continue;
-
+ 
             dep[v] = dep[u] + 1;
             dfs(v, u, cost);
         }
     }
-
+ 
     void build() {
         dfs(1, 1, 0);
-
+ 
         for (int j = 1; j < LOG; j++) {
             for (int i = 1; i <= n; i++) {
                 up[i][j] = up[up[i][j - 1]][j - 1];
-
+ 
                 mx[i][j] = max(
                     mx[i][j - 1],
                     mx[up[i][j - 1]][j - 1]
                 );
-
+ 
                 mn[i][j] = min(
                     mn[i][j - 1],
                     mn[up[i][j - 1]][j - 1]
@@ -53,47 +55,50 @@ struct LCA {
             }
         }
     }
-
+ 
     pair<int,int> getMinMax(int u, int v) {
+        if (u == v) {
+            return {0, 0};
+        }
         int Max = 0;
         int Min = 1e18;
-
+ 
         if (dep[u] < dep[v])
             swap(u, v);
-
+ 
         int dif = dep[u] - dep[v];
-
+ 
         for (int j = LOG - 1; j >= 0; j--) {
             if (dif & (1 << j)) {
                 Max = max(Max, mx[u][j]);
                 Min = min(Min, mn[u][j]);
-
+ 
                 u = up[u][j];
             }
         }
-
+ 
         if (u == v)
             return {Min, Max};
-
+ 
         for (int j = LOG - 1; j >= 0; j--) {
             if (up[u][j] != up[v][j]) {
                 Max = max(Max, mx[u][j]);
                 Max = max(Max, mx[v][j]);
-
+ 
                 Min = min(Min, mn[u][j]);
                 Min = min(Min, mn[v][j]);
-
+ 
                 u = up[u][j];
                 v = up[v][j];
             }
         }
-
+ 
         Max = max(Max, mx[u][0]);
         Max = max(Max, mx[v][0]);
-
+ 
         Min = min(Min, mn[u][0]);
         Min = min(Min, mn[v][0]);
-
+ 
         return {Min, Max};
     }
 };
