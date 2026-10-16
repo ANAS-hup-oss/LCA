@@ -9,7 +9,7 @@ struct LCA {
     vector<vector<int>> up, val;
     vector<int> depth, dis;
 
-    LCA(int n) : n(n), LOG(20) {
+    LCA(int n) : n(n), LOG(22) {
         adj.resize(n + 1);
         up.assign(n + 1, vector<int>(LOG));
         val.assign(n + 1, vector<int>(LOG));
